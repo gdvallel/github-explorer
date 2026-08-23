@@ -1,52 +1,67 @@
-# 00 — Setup & project anatomy
+# 01 — Project anatomy & file-based routing
 
-This lesson is different from the rest: there's no exercise. It documents what's already been
-scaffolded for you, so you understand every file before you start changing them in Lesson 01.
+No exercise in this one either — you're still getting oriented. By the end you should know
+what every file in `src/` is for.
 
-## Concept: file-based routing
+## What is "routing", really?
 
-TanStack Router can be configured two ways: **code-based** (you call `createRoute()` and wire
-a tree together by hand) or **file-based** (you drop files in `src/routes/`, and a build-time
-plugin generates the route tree for you). File-based is the [officially recommended default](https://tanstack.com/router/latest/docs/routing/file-based-routing)
-for most projects, and it's what this app uses.
+When you visit `github.com/torvalds`, you're not loading a whole new app — you're telling
+GitHub "show me the page for user torvalds." **Routing** is the system that looks at the
+current URL (what's in the address bar) and decides which piece of UI to show. TanStack
+Router is a library that does this for us in React apps.
 
-The plugin doing the work is `@tanstack/router-plugin`, wired into `vite.config.ts`:
+## Two ways to define routes — and which one this app uses
+
+You could write out every route by hand in one big JavaScript file. TanStack Router calls
+that "code-based routing." Instead, this app uses **file-based routing**: you create a file
+inside `src/routes/`, and the *file's name and location* automatically becomes a URL. No
+manual wiring. This is the [officially recommended default](https://tanstack.com/router/latest/docs/routing/file-based-routing)
+for most projects, and it's simpler to reason about once you know the naming rules below.
+
+## The tool doing this automatically
+
+A piece of the build setup called `@tanstack/router-plugin` watches your `src/routes/`
+folder. Every time you add, rename, or delete a route file, it regenerates
+`src/routeTree.gen.ts` — a file that lists every route your app has, in a format React
+Router can read fast. You can see it wired into `vite.config.ts`:
 
 ```ts
 tanstackRouter({ target: 'react', autoCodeSplitting: true })
 ```
 
-Every time you add, rename, or delete a file in `src/routes/`, this plugin regenerates
-`src/routeTree.gen.ts` — **never edit that file by hand**, it's a build artifact (that's why
-it's fine to commit it, but you should never touch it directly). `autoCodeSplitting: true`
-means each route's component is automatically split into its own JS chunk without you writing
-any `.lazy.tsx` files — more on that in Lesson 08.
+**Never edit `src/routeTree.gen.ts` by hand.** It says so at the top of the file — it gets
+regenerated automatically, so any manual edit just gets thrown away. (More on
+`autoCodeSplitting` in a later lesson — for now, just know it's a performance feature, not
+something you need to touch.)
 
-## File-naming conventions (reference — you'll use these starting Lesson 01)
+## The naming rules (you'll use these starting next lesson)
 
-| Pattern | Meaning |
+| File name | What it becomes |
 |---|---|
-| `__root.tsx` | the root layout, wraps every route |
-| `index.tsx` | exact match, e.g. `routes/index.tsx` → `/` |
-| `$param.tsx` | dynamic segment, e.g. `$username.tsx` → `/:username` |
-| `_layout.tsx` | pathless layout — wraps children, adds no URL segment |
-| `(group)/` | pathless route *group* — organizational only, invisible in the URL |
-| `posts.$postId.tsx` | dot notation — flat file that nests under `/posts/:postId` |
+| `__root.tsx` | the outer wrapper for every single page — like a picture frame everything sits inside |
+| `index.tsx` | matches the exact path `/` — your homepage |
+| `$param.tsx` | a placeholder in the URL, e.g. `$username.tsx` matches `/anything-here` |
+| `_layout.tsx` | a shared wrapper for *some* pages (not all), with no URL of its own |
+| `posts.$postId.tsx` | dot-separated name = a nested route, e.g. `/posts/123` |
 
-## In this app: what's already here
+## Walking through the files you already have
 
 ```
 src/
-├── main.tsx           # entry point: creates the router + QueryClient, mounts React
-├── router.tsx          # getRouter(): createRouter() wired with a TanStack Query client
-├── routeTree.gen.ts     # generated — do not edit
+├── main.tsx           # the very first code that runs (see Lesson 00)
+├── router.tsx          # builds the router object itself
+├── routeTree.gen.ts     # auto-generated list of routes — never edit
 ├── styles.css
 └── routes/
-    ├── __root.tsx       # root layout: renders <Outlet /> + Router/Query devtools
-    └── index.tsx         # the "/" route
+    ├── __root.tsx       # the outer frame: shows devtools, and <Outlet /> for the current page
+    └── index.tsx         # the "/" homepage
 ```
 
-Two things worth noticing in `router.tsx`:
+`<Outlet />`, which you saw in `__root.tsx` in Lesson 00, is the actual "put the current page
+here" placeholder — it's how the outer frame and the specific page you're viewing get
+combined into one screen.
+
+## `router.tsx`, piece by piece
 
 ```tsx
 export interface RouterContext {
@@ -58,38 +73,35 @@ export function getRouter() {
   const router = createTanStackRouter({
     routeTree,
     context: { queryClient } satisfies RouterContext,
-    // ...
+    scrollRestoration: true,
+    defaultPreload: 'intent',
+    defaultPreloadStaleTime: 0,
   })
   return router
 }
 ```
 
-This is the standard pattern for combining TanStack Router with TanStack Query: a
-`QueryClient` is created once and injected into the router's **context**. Every route's
-`loader` gets access to it (`({ context }) => context.queryClient`), which is how Lesson 03
-will fetch data through Query's cache instead of a bare `fetch()`. `__root.tsx` declares the
-context's type via `createRootRouteWithContext<RouterContext>()` so that access is fully
-typed everywhere, with no casting.
-
-`defaultPreloadStaleTime: 0` on the router tells Router to delegate all caching decisions to
-Query instead of using its own preload cache — necessary when the two are combined, otherwise
-they'd fight over staleness.
+- `createTanStackRouter({ routeTree, ... })` — this is the actual function that builds the
+  router, using that auto-generated list of routes.
+- `context: { queryClient }` — **context** here just means "a shared bag of stuff every page
+  is allowed to reach into." We're putting one specific thing in that bag: a `queryClient`.
+  That object (from TanStack Query, a different library working alongside the router) is
+  where the app will store data it fetches from the internet, so it doesn't have to
+  re-fetch the same thing over and over — think of it as the app's fridge. Because we put it
+  in the shared bag, *any* page can reach in and use that same fridge instead of each page
+  getting its own separate one. You'll actually use this starting in Lesson 03.
+- `defaultPreloadStaleTime: 0` — a setting that says "let the fridge (TanStack Query) be the
+  one deciding when data is stale, don't have the router *also* try to manage freshness" —
+  needed because we're using both libraries together.
 
 ## Devtools
 
-Run `npm run dev` and look at the bottom-right corner: a `TanStackDevtools` shell hosts both
-the Router devtools panel and the Query devtools panel side by side (wired in `__root.tsx`).
-Open it now and click around — you'll use it constantly once loaders and queries show up.
-
-## AGENTS.md
-
-The scaffolder also generated `AGENTS.md` at the repo root. It's not a lesson file, but it's a
-genuinely useful index: it lists TanStack's own topic-by-topic reference skills (search params,
-auth guards, code splitting, etc.), each loadable on demand with
-`npx @tanstack/intent@latest load <id>`. Worth knowing it's there if you want the primary-source
-detail behind any lesson topic.
+Run `npm run dev`, look at the bottom-right corner of the page: there's a small panel you can
+open. That's `TanStackDevtools`, wired up in `__root.tsx`. It shows you, live, which route is
+currently active and what's happening with data fetching. Open it now, just to see it exists
+— you'll lean on it a lot once there's more than one page.
 
 ## Your task
 
-None — just read through the files above and open the devtools once with `npm run dev`. When
-you're ready, move on to [Lesson 01](01-layouts-and-static-routes.md).
+None — just run `npm run dev`, open the devtools panel once, and look at the actual files in
+your editor while you read this. When you're ready: [Lesson 02 — Layouts & static routes](02-layouts-and-static-routes.md).
