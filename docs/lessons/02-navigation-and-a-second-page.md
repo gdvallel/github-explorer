@@ -1,18 +1,55 @@
-# 01 — Layouts & static routes
+# 02 — Navigation & a second page
 
-First real exercise. You're building the pieces yourself from here on — this repo won't hand
-you finished route files anymore.
+Your first hands-on exercise. Small on purpose: one new page, one working link. You're
+building the file yourself from here on — this repo won't hand you finished route files
+anymore.
 
-## Concept: `Link`
+## Concept: adding a route is just... adding a file
 
-`@tanstack/react-router` ships a typed `Link` component instead of a plain `<a>`. It knows
-about every route in your route tree, so `to="/some-typo"` is a *type error*, not a 404 you
-discover at runtime. It also handles SPA navigation (no full page reload) and exposes
-`activeProps` / `activeOptions` for styling the currently-active link.
+You already know `src/routes/index.tsx` matches `/` (Lesson 01). To create a new page at
+`/about`, you don't need to register it anywhere or configure a list of routes — you just
+create a new file: `src/routes/about.tsx`. The `@tanstack/router-plugin` we talked about in
+Lesson 01 notices the new file and automatically adds `/about` to the generated route list.
+That's the whole trick behind file-based routing.
+
+Every route file needs to export something called `Route`, built with `createFileRoute`.
+Copy the shape from `index.tsx`:
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/')({ component: Home })
+
+function Home() {
+  return <div>...</div>
+}
+```
+
+`createFileRoute('/')` — the string here has to match the file's own path. For a new file at
+`src/routes/about.tsx`, the matching call is `createFileRoute('/about')`.
+
+## Concept: `Link`, a smarter `<a>` tag
+
+To navigate between pages without a full page reload, TanStack Router gives you a `Link`
+component instead of a plain HTML `<a>`:
 
 ```tsx
 import { Link } from '@tanstack/react-router'
 
+<Link to="/about">About</Link>
+```
+
+It behaves like a normal link visually, but two things are different under the hood:
+1. Clicking it swaps the page instantly, without the browser doing a full reload.
+2. `to="/about"` is checked against your *actual* routes. If you typo it as `to="/abuot"`,
+   your editor flags it as an error immediately — you find out while typing, not by clicking
+   a broken link later.
+
+You can also make the link *look* different when you're currently on that page, using
+`activeProps` — a prop that says "extra styling to apply only while this link's page is the
+current one":
+
+```tsx
 <Link to="/about" activeProps={{ className: 'font-bold' }}>
   About
 </Link>
@@ -20,70 +57,45 @@ import { Link } from '@tanstack/react-router'
 
 Docs: [Navigation](https://tanstack.com/router/latest/docs/framework/react/guide/navigation)
 
-## Concept: index routes
-
-`src/routes/index.tsx` matches the exact path `/`. You already have this one — it's the
-`Home` component you saw in Lesson 00.
-
-## Concept: pathless layouts
-
-Every route already shares the layout in `__root.tsx` — but that's *global*, it wraps
-literally everything including future auth/error pages you don't want a public nav on. A
-**pathless layout route** lets you share a layout (like a header + nav) across a *subset* of
-routes without adding a URL segment. The file is prefixed with an underscore, e.g. `_layout.tsx`,
-and routes that should be wrapped by it are nested under it in the file tree.
-
-This is the one piece of file-naming syntax in this lesson worth double-checking against the
-docs yourself rather than trusting a paraphrase — conventions here have a directory form and a
-dot-notation form, and getting it right by reading the source once is worth more than me
-telling you. Read: [Routing Concepts → Layouts](https://tanstack.com/router/latest/docs/routing/routing-concepts#layout-routes)
-before you start (or run `npx @tanstack/intent@latest load @tanstack/router-core#router-core`
-for the primary-source reference AGENTS.md points at).
-
 ## In this app
 
-Right now `/` renders `Home` directly under the root, and there's no navigation at all. By the
-end of this lesson, `/` and `/about` should both render inside a shared header with working
-navigation links.
+Right now there's exactly one page (`/`) and nothing links anywhere. By the end of this
+lesson there'll be two pages, and a small nav bar in the root layout (`__root.tsx`) letting
+you click between them.
+
+*(Later, once we add pages that need a different look — like a login screen — we'll learn how
+to give only *some* pages a shared layout instead of putting everything in the root. Not yet;
+right now everything sharing one simple layout is exactly right.)*
 
 ## Your task
 
-1. Add a new `/about` route. Content is up to you — a couple of sentences about what this
-   project is (you're building the README's pitch into the app itself, not a bad habit).
-2. Add a pathless layout that both `/` and `/about` render inside, containing:
-   - A `<nav>` with `Link`s to Home and About.
-   - The active link visually distinguished from the inactive one (`activeProps`).
-3. Keep the root (`__root.tsx`) as it is — devtools only, no nav — the nav belongs in the new
-   layout, not the root.
+1. Create `src/routes/about.tsx` — a new page with a couple of sentences about what this
+   project is (you're basically typing the README's pitch into the app itself).
+2. In `src/routes/__root.tsx`, add a small `<nav>` above `<Outlet />` with two `Link`s: Home
+   and About.
+3. Make the active page's link look visually different from the inactive one, using
+   `activeProps`.
 
 **Acceptance criteria:**
-- `npm run dev` — visiting `/` and `/about` both show the same header/nav, only the page
-  content below it changes.
-- The nav link for whichever page you're on looks visibly different from the other link.
+- `npm run dev` — visiting `/` and `/about` both show the same nav bar, only the content
+  below it changes.
+- Clicking a nav link changes the page without the browser doing a full reload (you can tell
+  because there's no white-flash reload).
+- The link for whichever page you're currently on looks visibly different from the other one.
 - `npm run build` succeeds with no errors.
 - `npm run lint` passes.
 
-## Hints (optional)
-
-<details>
-<summary>If you're stuck on the file layout</summary>
-
-One valid shape: a file `src/routes/_layout.tsx` defining the nav + an `<Outlet />`, plus a
-directory `src/routes/_layout/` containing `index.tsx` and `about.tsx` (moved out of the flat
-`src/routes/` root). Regenerate the route tree with `npm run generate-routes` after moving
-files around if `npm run dev` doesn't pick it up automatically. Verify against the docs link
-above if the file tree in your editor doesn't match what you expected — this is the detail
-worth confirming yourself.
-
-</details>
-
 ## Committing
 
-Once the acceptance criteria pass, commit it yourself:
+Once the acceptance criteria pass, commit it yourself. Since it's really two small changes,
+feel free to split it into two commits instead of one big one:
 
 ```bash
-git add -A
-git commit -m "feat: add shared nav layout and about route"
+git add src/routes/about.tsx
+git commit -m "feat: add about page"
+
+git add src/routes/__root.tsx
+git commit -m "feat: add nav bar with home/about links"
 ```
 
-Then move on to [Lesson 02](02-search-params.md).
+Then move on to Lesson 03 (search params) — ask me when you're ready and I'll write it.
