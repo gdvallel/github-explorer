@@ -23,8 +23,8 @@ app and ends with a hands-on exercise; the commit history in this repo *is* the 
 | 00 | [JavaScript, React & TypeScript basics](docs/lessons/00-javascript-react-typescript-basics.md) | functions, JSX, components, props, imports, types |
 | 01 | [Project anatomy & file-based routing](docs/lessons/01-setup-and-project-anatomy.md) | file-based routing, route tree generation, router context |
 | 02 | [Navigation & a second page](docs/lessons/02-navigation-and-a-second-page.md) | `Link`, index routes, adding a route |
-| 03 | Search params | `validateSearch`, `useSearch`, type-safe URL state |
-| 04 | Loaders & TanStack Query | `loader`, `ensureQueryData`, `useSuspenseQuery`, pending states |
+| 03 | [Search params](docs/lessons/03-search-params.md) | `validateSearch`, `useSearch`, type-safe URL state |
+| 04 | [Loaders & TanStack Query](docs/lessons/04-loaders-and-tanstack-query.md) | `loader`, `ensureQueryData`, `useSuspenseQuery`, pending states |
 | 05 | Dynamic routes & errors | path params, `errorComponent`, `notFound()` |
 | 06 | Nested routes & pagination | nested route composition, hover preloading |
 | 07 | Protected routes & auth guards | pathless layouts, router context, `beforeLoad`, `redirect()` |
@@ -34,7 +34,7 @@ app and ends with a hands-on exercise; the commit history in this repo *is* the 
 | 11 | Testing routes *(bonus)* | Vitest + Testing Library |
 | 12 | Deploy *(bonus)* | GitHub remote, hosting |
 
-Lessons past 02 aren't written yet — they get added one at a time as you work through the
+Lessons past 04 aren't written yet — they get added one at a time as you work through the
 course.
 
 ## Stack
