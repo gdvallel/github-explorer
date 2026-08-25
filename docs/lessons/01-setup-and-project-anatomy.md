@@ -1,7 +1,81 @@
 # 01 — Project anatomy & file-based routing
 
 No exercise in this one either — you're still getting oriented. By the end you should know
-what every file in `src/` is for.
+what every file in `src/` is for, and how this whole project came to exist in the first place.
+
+## Before routing: how did this project even get created?
+
+You didn't type any of this from scratch — I ran one command and it built the whole skeleton
+you're looking at right now. "How do I even set this up myself" is a completely fair thing to
+feel lost on, so let's slow down on that before going further.
+
+### npm and packages
+
+**npm** (Node Package Manager) is a tool that comes bundled with Node.js. Its job: download
+code that other people already wrote — called a **package** — onto your computer, so you can
+use it instead of writing it yourself. TanStack Router is a package: someone else wrote it,
+tested it, and published it online; your project just downloads it.
+
+Every project has a file called `package.json` — open it, right at the project root. Look
+under `"dependencies"`:
+
+```json
+"dependencies": {
+  "@tanstack/react-router": "...",
+  "react": "...",
+  ...
+}
+```
+
+That's the project's shopping list — "these are the packages this app needs to run." When you
+run `npm install`, npm reads that list and downloads every package on it into a folder called
+`node_modules`. That folder is huge, fully auto-generated, and you never open or edit it by
+hand (check `.gitignore` — it's already excluded from git, because it's rebuildable and would
+be enormous to store). Every `import { ... } from '@tanstack/react-router'` line you write is
+reaching into that folder.
+
+### The actual command that built this project
+
+I created this project by running one command inside an empty folder:
+
+```bash
+npx @tanstack/cli create github-explorer --framework react --router-only --toolchain eslint
+```
+
+Piece by piece:
+- `npx @tanstack/cli create` — "run TanStack's own project-creator tool."
+- `github-explorer` — the name of the project.
+- `--framework react` — build it for React (the tool also supports other frameworks, we don't
+  want those).
+- `--router-only` — "I want TanStack Router by itself, not TanStack's full server framework
+  (TanStack Start)." This flag matters a lot: leave it off, and the tool assumes you want a
+  full backend server too, which isn't what this course is about.
+- `--toolchain eslint` — also set up ESLint, a tool that flags common code mistakes as you
+  type.
+
+That one command downloaded every package, generated the starter files (`main.tsx`,
+`router.tsx`, `vite.config.ts`, everything), and ran `npm install` automatically. You don't
+need to repeat this — it already happened, once, for this repo. It's worth knowing, though,
+because if you ever start a brand-new project of your own later, this is the real command
+you'd reach for.
+
+### `npm run generate-routes` — building the route list yourself
+
+Still in `package.json`, look at `"scripts"`:
+
+```json
+"scripts": {
+  "dev": "vite dev --port 3000",
+  "generate-routes": "tsr generate",
+  ...
+}
+```
+
+Normally you'll never run `generate-routes` by hand — `npm run dev` already watches your
+`src/routes/` folder and regenerates `routeTree.gen.ts` automatically every time you save a
+new route file. But if that ever seems out of sync (you added a route and it's just not
+showing up when you visit the URL), running `npm run generate-routes` forces it to happen
+once, immediately, so you can rule that out.
 
 ## What is "routing", really?
 
@@ -104,4 +178,4 @@ currently active and what's happening with data fetching. Open it now, just to s
 ## Your task
 
 None — just run `npm run dev`, open the devtools panel once, and look at the actual files in
-your editor while you read this. When you're ready: [Lesson 02 — Layouts & static routes](02-layouts-and-static-routes.md).
+your editor while you read this. When you're ready: [Lesson 02 — Navigation & a second page](02-navigation-and-a-second-page.md).
