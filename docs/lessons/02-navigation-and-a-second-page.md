@@ -98,4 +98,4 @@ git add src/routes/__root.tsx
 git commit -m "feat: add nav bar with home/about links"
 ```
 
-Then move on to Lesson 03 (search params) — ask me when you're ready and I'll write it.
+Then move on to [Lesson 03 — Search params](03-search-params.md).
