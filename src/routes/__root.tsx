@@ -1,4 +1,4 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { Link, Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools'
@@ -15,6 +15,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <>
+      <nav>
+        <Link to="/" activeProps={{ className: "text-green-600" }}>Home</Link>
+        <Link to="/about" activeProps={{ className: "text-green-600" }}>About</Link>
+      </nav>
       <Outlet />
       <TanStackDevtools
         config={{
