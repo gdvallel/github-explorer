@@ -15,9 +15,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <>
-      <nav>
+      <nav className="flex gap-1.5">
         <Link to="/" activeProps={{ className: "text-green-600" }}>Home</Link>
         <Link to="/about" activeProps={{ className: "text-green-600" }}>About</Link>
+        <Link to="/search" activeProps={{ className: "text-green-600" }}>Search</Link>
       </nav>
       <Outlet />
       <TanStackDevtools
