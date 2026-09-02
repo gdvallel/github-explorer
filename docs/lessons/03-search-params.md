@@ -107,7 +107,7 @@ input box is just showing you what's currently in it.
 ## Committing
 
 ```bash
-git add package.json package-lock.json
+git add package.json
 git commit -m "chore: add zod"
 
 git add src/routes/search.tsx
